@@ -1,163 +1,141 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: WeatherPage(),
+      title: 'Weather App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: const WeatherScreen(),
     );
   }
 }
 
-class WeatherPage extends StatefulWidget {
+class WeatherScreen extends StatefulWidget {
+  const WeatherScreen({super.key});
+
   @override
-  _WeatherPageState createState() => _WeatherPageState();
+  State<WeatherScreen> createState() => _WeatherScreenState();
 }
 
-class _WeatherPageState extends State<WeatherPage> {
-  String city = "Chennai";
+class _WeatherScreenState extends State<WeatherScreen> {
+  String city = "";
   String temperature = "";
-  String description = "";
-  String icon = "";
+  String condition = "";
+  bool isLoading = false;
+  String error = "";
 
   Future<void> getWeather() async {
-    final apiKey = "YOUR_API_KEY";
-    final url =
-        "https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric";
+    setState(() {
+      isLoading = true;
+      error = "";
+    });
 
-    final response = await http.get(Uri.parse(url));
+    try {
+      final response = await http.get(
+        Uri.parse(
+            "https://api.openweathermap.org/data/2.5/weather?q=$city&appid=YOUR_API_KEY&units=metric"),
+      );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
 
+        setState(() {
+          temperature = data['main']['temp'].toString();
+          condition = data['weather'][0]['main'];
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          error = "City not found";
+          isLoading = false;
+        });
+      }
+    } catch (e) {
       setState(() {
-        temperature = data['main']['temp'].toString();
-        description = data['weather'][0]['main'];
-        icon = data['weather'][0]['icon'];
+        error = "Something went wrong";
+        isLoading = false;
       });
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    getWeather();
+  Color getBackgroundColor() {
+    if (condition.toLowerCase().contains("cloud")) {
+      return Colors.grey;
+    } else if (condition.toLowerCase().contains("rain")) {
+      return Colors.blueGrey;
+    } else {
+      return Colors.orange;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blueAccent, Colors.indigo],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              SizedBox(height: 20),
+      backgroundColor: getBackgroundColor(),
+      appBar: AppBar(
+        title: const Text("Weather App"),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextField(
+              decoration: InputDecoration(
+                hintText: "Enter City",
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onChanged: (value) {
+                city = value;
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: getWeather,
+              child: const Text("Get Weather"),
+            ),
+            const SizedBox(height: 20),
 
-              // Title
+            if (isLoading) const CircularProgressIndicator(),
+
+            if (error.isNotEmpty)
               Text(
-                "Weather App",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+                error,
+                style: const TextStyle(color: Colors.red, fontSize: 16),
               ),
 
-              SizedBox(height: 20),
-
-              // Search Box
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: TextField(
-                  onChanged: (value) => city = value,
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: "Enter city",
-                    hintStyle: TextStyle(color: Colors.white70),
-                    filled: true,
-                    fillColor: Colors.white24,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
-                    ),
+            if (temperature.isNotEmpty)
+              Column(
+                children: [
+                  Text(
+                    "$temperature °C",
+                    style: const TextStyle(
+                        fontSize: 40, fontWeight: FontWeight.bold),
                   ),
-                ),
+                  Text(
+                    condition,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                ],
               ),
-
-              SizedBox(height: 10),
-
-              ElevatedButton(
-                onPressed: getWeather,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.blue,
-                ),
-                child: Text("Search"),
-              ),
-
-              SizedBox(height: 40),
-
-              // Weather Card
-              temperature.isEmpty
-                  ? CircularProgressIndicator(color: Colors.white)
-                  : Container(
-                      margin: EdgeInsets.symmetric(horizontal: 20),
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        children: [
-                          // Weather Icon
-                          if (icon.isNotEmpty)
-                            Image.network(
-                              "https://openweathermap.org/img/wn/$icon@2x.png",
-                              width: 100,
-                            ),
-
-                          SizedBox(height: 10),
-
-                          // Temperature
-                          Text(
-                            "$temperature °C",
-                            style: TextStyle(
-                              fontSize: 40,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-
-                          SizedBox(height: 10),
-
-                          // Description
-                          Text(
-                            description,
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-            ],
-          ),
+          ],
         ),
       ),
     );
