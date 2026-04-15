@@ -3,217 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Weather report</title>
+    <title>Weather OS Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
         :root {
             --neon-blue: #00f2ff;
-            --glass-bg: rgba(255, 255, 255, 0.1);
+            --neon-purple: #7000ff;
+            --glass: rgba(10, 10, 15, 0.8);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Roboto', sans-serif;
-            background: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+            background: #050505;
             background-size: cover;
-            height: 100vh;
+            background-position: center;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             color: white;
+            transition: background 1s ease-in-out;
         }
 
         .weather-card {
-            background: rgba(10, 10, 15, 0.75);
-            backdrop-filter: blur(15px);
-            width: 100%;
-            max-width: 400px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            width: 90%;
+            max-width: 500px;
             padding: 30px;
-            border-radius: 20px;
-            border: 1px solid rgba(0, 242, 255, 0.3);
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-            text-align: center;
+            border-radius: 25px;
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
         }
 
-        h2 { font-family: 'Orbitron', sans-serif; margin-bottom: 20px; color: var(--neon-blue); letter-spacing: 2px; }
-
-        /* Search Section with Dropdown */
-        .search-box { position: relative; width: 100%; margin-bottom: 25px; }
+        .search-area { display: flex; gap: 10px; margin-bottom: 20px; position: relative; }
 
         input {
-            width: 100%;
+            flex: 1;
             padding: 12px 20px;
-            background: var(--glass-bg);
+            background: rgba(255,255,255,0.05);
             border: 1px solid var(--neon-blue);
             border-radius: 30px;
             color: white;
             outline: none;
             font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
         }
 
-        /* Dropdown Menu Style */
-        .city-dropdown {
-            position: absolute;
-            top: 50px;
-            left: 0;
-            width: 100%;
-            background: rgba(20, 20, 25, 0.95);
+        .btn-icon {
+            background: transparent;
             border: 1px solid var(--neon-blue);
-            border-radius: 10px;
-            list-style: none;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 100;
-            display: none;
-        }
-
-        .city-dropdown li {
-            padding: 12px;
+            color: var(--neon-blue);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
             cursor: pointer;
-            text-align: left;
             transition: 0.3s;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
+        .btn-icon:hover { background: var(--neon-blue); color: black; box-shadow: 0 0 15px var(--neon-blue); }
 
-        .city-dropdown li:hover { background: var(--neon-blue); color: black; }
-
-        /* Weather Display */
-        .weather-info { display: none; }
-
-        .temp { font-size: 64px; font-weight: 300; margin: 10px 0; }
-        .city-name { font-family: 'Orbitron', sans-serif; font-size: 20px; text-transform: uppercase; }
-        .description { text-transform: capitalize; opacity: 0.8; margin-bottom: 20px; }
-
-        .details {
-            display: flex;
-            justify-content: space-around;
+        /* Main Weather Info */
+        .main-display { text-align: center; margin-bottom: 30px; }
+        .temp { font-size: 72px; font-weight: 300; color: #fff; }
+        .city { font-family: 'Orbitron', sans-serif; font-size: 24px; margin-bottom: 5px; }
+        
+        /* 5-Day Forecast Grid */
+        .forecast-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 20px;
             padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.2);
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
-        .detail-col { display: flex; flex-direction: column; font-size: 14px; }
-        .detail-label { opacity: 0.6; font-size: 11px; text-transform: uppercase; margin-bottom: 5px; }
+        .forecast-item {
+            text-align: center;
+            font-size: 12px;
+            background: rgba(255,255,255,0.03);
+            padding: 10px 5px;
+            border-radius: 10px;
+        }
+        .forecast-item img { width: 30px; }
 
-        .weather-icon { width: 100px; filter: drop-shadow(0 0 10px var(--neon-blue)); }
-
-        .error { color: #ff0055; font-size: 12px; margin-top: 10px; display: none; }
+        /* Dropdown */
+        #cityList {
+            position: absolute; top: 55px; left: 0; width: calc(100% - 55px);
+            background: #111; border: 1px solid var(--neon-blue);
+            list-style: none; z-index: 100; border-radius: 10px; display: none;
+        }
+        #cityList li { padding: 10px; cursor: pointer; }
+        #cityList li:hover { background: var(--neon-blue); color: #000; }
     </style>
 </head>
 <body>
 
     <div class="weather-card">
-        <h2>Weather</h2>
-        
-        <div class="search-box">
-            <input type="text" id="cityInput" placeholder="Enter City Name..." autocomplete="off">
-            <ul id="cityList" class="city-dropdown"></ul>
-            <p id="errorMsg" class="error">City not found. Try again.</p>
+        <div class="search-area">
+            <input type="text" id="cityInput" placeholder="Locate City..." autocomplete="off">
+            <button class="btn-icon" onclick="getLocation()">📍</button>
+            <ul id="cityList"></ul>
         </div>
 
-        <div id="weatherContent" class="weather-info">
-            <img src="" id="icon" class="weather-icon" alt="weather-status">
-            <div class="temp"><span id="tempValue">0</span>°C</div>
-            <div class="city-name" id="displayCity">---</div>
-            <div class="description" id="weatherDesc">---</div>
-            
-            <div class="details">
-                <div class="detail-col">
-                    <span class="detail-label">Humidity</span>
-                    <span id="humidity">0%</span>
-                </div>
-                <div class="detail-col">
-                    <span class="detail-label">Wind Speed</span>
-                    <span id="wind">0 km/h</span>
-                </div>
+        <div id="weatherDisplay" style="display: none;">
+            <div class="main-display">
+                <img id="mainIcon" src="" alt="icon">
+                <div class="city" id="cityName">---</div>
+                <div class="temp"><span id="tempValue">0</span>°C</div>
+                <div id="weatherDesc" style="text-transform: capitalize; opacity: 0.7;">---</div>
             </div>
+
+            <div class="forecast-container" id="forecast">
+                </div>
         </div>
     </div>
 
     <script>
-        const apiKey = '4f7d0c6f7051d04c2aa615ea0cdee77d'; // REPLACE WITH YOUR OPENWEATHER API KEY
+        const apiKey = 'YOUR_API_KEY_HERE'; // Replace with your key
         const cityInput = document.getElementById('cityInput');
         const cityList = document.getElementById('cityList');
-        const weatherContent = document.getElementById('weatherContent');
-        const errorMsg = document.getElementById('errorMsg');
 
-        // Predefined list for the dropdown menu
-        const commonCities = [
-            "Chennai", "Mumbai", "Delhi", "Bangalore", "Singapore", 
-            "London", "New York", "Tokyo", "Dubai", "Paris", "Berlin"
-        ];
+        const commonCities = ["Chennai", "Madurai", "Singapore", "London", "Dubai", "New York", "Tokyo"];
 
-        // Filter and Show Dropdown
+        // Dynamic Background Mapping
+        const bgMap = {
+            Clear: "url('https://images.unsplash.com/photo-1506452305024-9d3f02d1c9b0?auto=format&fit=crop&w=1920&q=80')",
+            Clouds: "url('https://images.unsplash.com/photo-1483977399921-6cf3832f79a6?auto=format&fit=crop&w=1920&q=80')",
+            Rain: "url('https://images.unsplash.com/photo-1534274988757-a28bf1a53c17?auto=format&fit=crop&w=1920&q=80')",
+            Snow: "url('https://images.unsplash.com/photo-1478265409131-1f65c88f965c?auto=format&fit=crop&w=1920&q=80')",
+            Thunderstorm: "url('https://images.unsplash.com/photo-1605727216801-e27ce1d0cc28?auto=format&fit=crop&w=1920&q=80')"
+        };
+
+        // 1. Geolocation (New Feature)
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude);
+                });
+            }
+        }
+
+        async function fetchWeatherByCoords(lat, lon) {
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            updateUI(data);
+            getForecast(data.name);
+        }
+
+        // 2. City Dropdown Filter
         cityInput.addEventListener('input', () => {
             const val = cityInput.value.toLowerCase();
             cityList.innerHTML = '';
-            
-            if (val.length > 0) {
-                const filtered = commonCities.filter(city => city.toLowerCase().includes(val));
-                if (filtered.length > 0) {
-                    cityList.style.display = 'block';
-                    filtered.forEach(city => {
-                        const li = document.createElement('li');
-                        li.textContent = city;
-                        li.onclick = () => selectCity(city);
-                        cityList.appendChild(li);
-                    });
-                } else {
-                    cityList.style.display = 'none';
-                }
-            } else {
-                cityList.style.display = 'none';
-            }
-        });
-
-        function selectCity(city) {
-            cityInput.value = city;
-            cityList.style.display = 'none';
-            getWeather(city);
-        }
-
-        // Enter key support
-        cityInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                getWeather(cityInput.value);
-                cityList.style.display = 'none';
-            }
+            if(val) {
+                const matches = commonCities.filter(c => c.toLowerCase().includes(val));
+                cityList.style.display = matches.length ? 'block' : 'none';
+                matches.forEach(m => {
+                    const li = document.createElement('li');
+                    li.textContent = m;
+                    li.onclick = () => { cityInput.value = m; cityList.style.display = 'none'; getWeather(m); };
+                    cityList.appendChild(li);
+                });
+            } else { cityList.style.display = 'none'; }
         });
 
         async function getWeather(city) {
-            try {
-                const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`);
-                
-                if (!response.ok) throw new Error("Not Found");
-
-                const data = await response.json();
-                displayWeather(data);
-                errorMsg.style.display = 'none';
-            } catch (err) {
-                errorMsg.style.display = 'block';
-                weatherContent.style.display = 'none';
+            const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`);
+            if(res.ok) {
+                const data = await res.json();
+                updateUI(data);
+                getForecast(city);
             }
         }
 
-        function displayWeather(data) {
-            document.getElementById('tempValue').innerText = Math.round(data.main.temp);
-            document.getElementById('displayCity').innerText = data.name;
-            document.getElementById('weatherDesc').innerText = data.weather[0].description;
-            document.getElementById('humidity').innerText = data.main.humidity + "%";
-            document.getElementById('wind').innerText = data.wind.speed + " km/h";
-            
-            // Icon mapping
-            const iconCode = data.weather[0].icon;
-            document.getElementById('icon').src = `https://openweathermap.org/img/wn/${iconCode}@4x.png`;
+        // 3. 5-Day Forecast logic (New Feature)
+        async function getForecast(city) {
+            const res = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=metric&appid=${apiKey}`);
+            const data = await res.json();
+            const forecastEl = document.getElementById('forecast');
+            forecastEl.innerHTML = '';
 
-            weatherContent.style.display = 'block';
+            // OpenWeather forecast gives data every 3 hours. We pick 1 per day (every 8th index).
+            for(let i = 0; i < data.list.length; i += 8) {
+                const dayData = data.list[i];
+                const date = new Date(dayData.dt * 1000).toLocaleDateString('en', {weekday: 'short'});
+                forecastEl.innerHTML += `
+                    <div class="forecast-item">
+                        <div>${date}</div>
+                        <img src="https://openweathermap.org/img/wn/${dayData.weather[0].icon}.png">
+                        <div>${Math.round(dayData.main.temp)}°</div>
+                    </div>
+                `;
+            }
         }
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (e.target !== cityInput) cityList.style.display = 'none';
-        });
+        function updateUI(data) {
+            document.body.style.backgroundImage = bgMap[data.weather[0].main] || bgMap.Clear;
+            document.getElementById('cityName').innerText = data.name;
+            document.getElementById('tempValue').innerText = Math.round(data.main.temp);
+            document.getElementById('weatherDesc').innerText = data.weather[0].description;
+            document.getElementById('mainIcon').src = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+            document.getElementById('weatherDisplay').style.display = 'block';
+        }
+        
+        cityInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') getWeather(cityInput.value) });
     </script>
 </body>
 </html>
