@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather OS | Elite Protocol</title>
+    <title>Weather Report</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -112,7 +112,7 @@
 
     <div class="card">
         <div id="greeting">System Ready</div>
-        <h2>WEATHER_OS</h2>
+        <h2>TODAY WEATHER REPORT</h2>
         
         <div class="search-box">
             <input type="text" id="cityInput" placeholder="Enter City Name..." autocomplete="off">
@@ -148,7 +148,7 @@
     </div>
 
     <script>
-        const apiKey = 'YOUR_API_KEY_HERE'; // Add your key here
+        const apiKey = '4f7d0c6f7051d04c2aa615ea0cdee77d'; // Add your key here
 
         const cityInput = document.getElementById('cityInput');
         const themes = {
@@ -164,9 +164,9 @@
         function updateGreeting() {
             const hour = new Date().getHours();
             const greet = document.getElementById('greeting');
-            if (hour < 12) greet.innerText = "Good Morning, User";
-            else if (hour < 17) greet.innerText = "Good Afternoon, User";
-            else greet.innerText = "Good Evening, User";
+            if (hour < 12) greet.innerText = "Good Morning, Dear";
+            else if (hour < 17) greet.innerText = "Good Afternoon, Dear";
+            else greet.innerText = "Good Evening, Dear";
         }
         updateGreeting();
 
